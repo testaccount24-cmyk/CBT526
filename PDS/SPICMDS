@@ -1,0 +1,1048 @@
+
+
+
+
+                              SPI
+                    Command and Usage Guide
+
+
+
+
+
+
+
+Chapter  1
+
+SPI Basics
+
+Introduction
+
+The SPI  panel system is a full-screen ISPF-based system that
+greatly automates the standard security administrator functions
+normally performed through tedious, TSO-based syntax commands.
+The system allows you to:
+
+* Edit a profile in a full screen mode.  This feature means you
+  can add, modify, and delete permissions quickly and easily.  The
+  scrollable interface allows you to concentrate on your
+  requirements, not the exact syntax of the commands to be entered.
+  Revoking an authority is as easy as specifying a D next to the
+  appropriate line.  Standard TOP SECRET commands are created to
+  accomplish the work and can be reviewed prior to submission.
+
+* Automate ID additions so that authorities are assigned
+  automatically at creation time to ACIDs that require them.  You
+  also have the option of assigning a UID to an ID automatically.
+  You can specify at creation time the cluster of authorities to be
+  given or let the defaults for a department take effect.
+
+* Undelete IDs that were previously deleted.
+
+* Create a JCL job stream to rebuild one or multiple ACIDs from
+  standard TSS list command output.  You can then edit or review
+  the JCL prior to submission.  This is a very useful feature for
+  moving ACIDs from one system to another, or when you need to view
+  the syntax of a permit or add command.  You can also use this
+  feature to duplicate a profile before replacing it system wide.
+
+* Create a JCL stream to replace one profile globally with
+  another and maintain its relative place in each ACID.
+
+* Create a JCL stream to duplicate a permission rule database
+  wide. For example, you could create a new set of SYS2 dataset
+  rules that exactly matched every SYS1 permission.
+
+* Create a JCL stream to issue any TSO or TSS command for every
+  ACID in a department or division, or connected to a profile.
+
+* Secure panel commands with internal settings, if needed.
+
+* Plug your own REXX or CLIST commands into the system.  Each JCL
+  stream created uses standard TOP SECRET commands to accomplish
+  its function.  Commands that update the database can be queued to
+  a batch file for later submission.  This allows an administrator
+  to work much faster since there are no TSS interactive response
+  time delays.
+
+About This Guide
+
+This guide details the features available to a user of the panel
+system.  Effective use of this system requires detailed knowledge
+of the TOP SECRET security package installed at your site, and a
+working knowledge of ISPF basics.
+
+The Basics of the Primary Panel
+
+The panel system is a TSO/ISPF based system with the primary
+panel shown in the following figure:
+
+
+ SPI ----- MODE: ONLINE ------- SPI Primary Screen ------------------
+
+SPI OPTION  ===>
+
+
+
+  Please select a panel selection option.
+      0  Settings        - View some common settings
+      1  The Basics      - Day to Day ACID maintenance
+      2  Listing         - Listing ACIDs from the database
+      3  Addition        - Adding IDs to the database
+      4  Authorities     - Granting unusual authorities or clusters
+      5  Backup          - Backing up and retrieving ID images
+      6  Conversion      - Converting IDs and resources
+      7  Deletion        - Deleting IDs from the database
+      8  Utility DSN     - Accessing the utility datasets
+      9  Profiles        - Profile manipulation
+     10  Group commands  - Issuing commands for multiple IDs
+     11  Internal options- SPI internal commands
+     12  Local functions - Site specific functions
+     13  STC interface   - Query or update the running TSS STC
+
+Panel Description
+
+Line  1     Displays the current processing mode (batch or online).
+Line  2     A message area for normal importance messages.
+Line  3     The option selection line.
+Lines 4-5   A message area for important messages.
+Line  7     A static line that precedes the command display area.
+Lines below 8   A scrollable command area.  Each line in this
+              area represents a valid option for the SPI system.
+              Numeric functions invoke additional panels while
+              nonnumeric functions are actual commands.
+
+The entire lower area is scrollable; simply use PF7 to scroll up
+and PF8 to scroll down as you would in a browse session.
+
+The Panel Environment
+
+Command Modes of Operation:
+
+The panel system has two command modes of operation, online and
+batch, with online being the default.  Most commands function
+differently in each mode.  To change between modes, enter the
+command ONLINE or BATCH.
+
+In online mode the commands that update the security database are
+issued and their effect is immediate.  Commands that generate JCL
+streams are mode independent and continue to create these JCL
+decks.
+
+In batch mode, commands that would normally update the security
+database are translated to their JCL equivalent and appended to a
+batch JCL stream for submission at a later time.  This allows an
+administrator to interactively create the batch JCL stream
+without response time delays associated with multiple interactive
+updates to the security package.  At the conclusion of a batch
+mode session the administrator submits the JCL that was created.
+
+Display Modes of Operation:
+
+The panel system has two display modes of operation, basic and
+expert, with basic being the default. The modes change how data
+is entered into the command processor, but the actual command
+functionality remains unchanged. To change between modes, enter
+the command BASIC or EXPERT.
+
+In basic mode each command displays a customized screen for data
+entry. This is very helpful for a user who does not use a
+function repeatedly or may need some elaboration as to what data
+each command requires. The displaying of this additional screen
+does slow down the overall process of command entry however.
+
+In expert mode all required data is required prior to command
+invocation. This hastens throughput for a user who is familiar
+with the functions of the system.
+
+Some commands have an expert mode name and a basic mode name.
+
+The Work Datasets
+
+While using the panel system each user allocates five datasets to
+support output of various types.  The size needed for these
+datasets varies from a few tracks for a lower level administrator
+to several cylinders for the senior site administrator.  Work
+datasets are named in variables DS1- DS5, and referenced in the
+Bx and Ex commands.
+
+Example:  Work dataset #4 is named in variable DS4.  To edit this
+          dataset, use the command E4.  To browse this dataset,
+          use the command B4.
+
+Locally Administered Variables
+
+The panel system has several variables that should be customized
+to create the proper environment for each user.  Some of the most
+common variable values can be viewed and temporarily changed by
+using the 0 option.  These temporary changes are in effect for
+the duration of the current session, only.  See the SPI
+Installation and Customization Guide for instructions on how to
+make permanent changes, when they are required.
+
+Quick Reference for Daily Tasks
+
+This section illustrates how to use SPI  to accomplish some of
+the day-to-day tasks of a security administrator.  It assumes
+detailed knowledge of your current sites' security environment
+and familiarity with the panel system commands and their use.
+
+The tasks show how to:
+
+* Back up an ACID or group of ACIDs
+* Retrieve a backup of an ACID or group of ACIDs
+* Make an exact copy of one owned resource
+* Move a large group of ACIDs
+
+Back up an ACID or group of ACIDs
+
+This is one-step function of the panel system, through the use of
+the BACKUP command. It is also done automatically prior to a
+DELETE command issued through the panel system. This option is
+displayed on the backup menu which is displayed by selecting
+option 5 from the main menu.
+
+Retrieve a backup of an ACID or group of ACIDs
+
+This is one step function of the panel system, through use of the
+GETBACKUP command. It would usually be done prior to recreating a
+deleted ACID. This option is displayed on the backup menu which
+is displayed by selecting option 5 from the main menu.
+
+Make an exact copy of one owned resource
+
+Issue a RESCON command for the resource to be copied. Edit the
+JCL with the E2 command, then change any values you see fit. The
+RESCON command is displayed on the conversion backup menu which
+is displayed be selecting option 6 from the main menu.
+
+
+Move a large group of ACIDs
+
+First list the ACIDs to your DS1 dataset through the CMDO command
+which is on the group commands menu ( Option 10) ., as shown
+below:
+
+SPI ----- MODE: ONLINE ------- SPI Primary Screen --------------------
+
+ SPI OPTION  ===> Cmdout
+
+
+--------Command output trapping screen -------------------------------
+
+Specify the command as you would under ISPF option 6.
+
+Command text ---> Tss List( ACIDS ) Dept(xxx) Data( ALL,EXPIRE,PW,ACIDS )
+                             --->
+                             --->
+                             --->
+                             --->
+
+
+
+
+
+
+Then Issue a FULLCON command with the BYPASS parameter to use the
+DS1  data you just created as input:
+
+SPI ----- MODE: ONLINE ------- SPI Primary Screen --------------------
+
+ SPI OPTION  ===> FULLCON
+
+
+--------Convert routine query screen. -----------------
+Specify the target ACID(s) or BYPASS to use work DSN #1
+ACID(s)         ---> bypass
+                      --->
+                      --->
+                      --->
+                      --->
+                      --->
+
+
+
+
+
+
+This could also be done by using the settings screen ( main menu
+option 0 )  and pointing DS1 to a previously existing list of the
+ACIDs.
+
+This will create a JCL stream that will recreate the IDs that
+were contained in DS1.
+
+The Default Command Functions
+
+See the next chapter for complete information on the default
+command functions available from the panel system.
+
+
+
+Chapter  2
+
+SPI  Command Functions
+
+The Default Commands Summary
+
+The following command menus are described in detail in the rest
+of this chapter.
+
+* The settings menu                 (Option 0)
+* The basic functions menu          (Option 1)
+* The listing menu                  (Option 2)
+* The addition menu                 (Option 3)
+* The authorities menu              (Option 4)
+* The backup menu                   (Option 5)
+* The conversion menu               (Option 6)
+* The deletion menu                 (Option 7)
+* The utility dataset menu          (Option 8)
+* The profile  menu                 (Option 9)
+* The group command menu            (Option 10)
+* The internal option menu          (Option 11)
+* The STC interface  menu           (Option 13)
+
+Basic Command overview
+
+The SPI system has one main command line. When a command is
+selected a pop up menu will appear to allow you to specify any
+additional data the command requires, if needed. Valid commands
+are displayed in the lower portion of the screen in the leftmost
+column.  The lower portion of each screen is a scrollable area,
+so some options may be initially out of view. Standard use of PF7
+and PF8 will scroll this lower area.
+
+The presentation menus show the commands in related groups for
+ease of reference and use. The user of the system is in no way
+limited by the menu currently selected. Any authorized command
+may be invoked from any menu of the system.
+
+
+
+
+Settings: Option 0
+
+The settings menu displays some common panel settings and allows
+some of the values to be dynamically updated. Below is a screen
+picture, all values above the tables line can be updated by the
+user. Be aware, an incorrect update here can cause unpredictable
+results.
+
+SPI ----- MODE: ONLINE ------- SPI Basic Settings menu ---------------
+  STATUS : VARIABLE ENTRIES DISPLAYED STATUS
+
+ OPTION    ===> STATUS
+ DS1       ===> C1                              Listed output
+ DS2       ===> C2                              Processed output
+ DS3       ===> C3                              Processed output
+ DS4       ===> C4                              Wide reports DSN
+ DS5       ===> C5                              Batch mode output
+ DS6       ===> 'SYS3.TSS.BASEPARM(JCSOURC1)'   Sample ISPF JCL
+ Defaults  ===> SYS3.TSS.DEFAULTS               Default accesses
+ Panel     ===> SPIUTIL                         (Default entry Panel  )
+ Tver      ===> T50                             (TSS VERSION routines )
+ Backup    ===> TECH.SCA.IDBACKUP               (backup DSN)
+ Tables    ===> TS5#SC10          TS5#CM10      (Command-screen tables)
+ Srccmd    ===> 'SYS3.TSS.BASEPARM(CORECMD)'    (Command table name   )
+ Srcscr    ===> 'SYS3.TSS.BASEPARM(CORESCR)'    (Screen table name    )
+ Authnum   ===> 10                              (1 to 10 auth level   )
+ Version   ===> VERSION= 5.0 509808AKOM3
+ CPUused   ===> 1.01
+
+
+
+
+
+The Basics: Option 1
+
+This option menu contains the most commonly used functions in day
+to day ACID maintenance.
+
+They are:
+
+Asuspend -  This function will add the TSS ASUSPEND attribute to
+            the ACID specified.
+Us       -  This function will remove the TSS ASUSPEND attribute
+            from the ACID specified.
+Aexpire  -  This function will add the TSS EXPIRE field to the
+            ACID specified.
+Ue       -  This function will remove the TSS EXPIRE field from
+            the ACID specified.
+Extend   -  This function extends the ACIDs password for the
+            number of days that you specify.
+Reset    -  This function removes the expiration, resets the
+            password to the installation default, and unsuspends
+            the ACID.
+Pwreset  -  This function resets the ACID password to the
+            installation default.
+
+Listing:  Option 2
+
+These menu commands issue a TSS list command for the ACID
+specified and manipulates the output as follows.
+
+LISTO - Writes the resulting data to a work dataset #1.
+
+LISTS - Writes the resulting data to a temporary dataset, which
+        is then browsed.
+
+LIST  - Writes the resulting data directly to the screen, in the
+        same manner as a native TSS LIST command.
+
+
+
+Addition: Option 3
+
+ This menu displays the functions that add an ACID to the
+ database and also shows the options to update the STC record.
+ These options are:
+
+AddSTC - Adds an entry to the STC record.
+
+RemSTC - Removes an entry from the STC record.
+
+Add  -   This option will add an ACID and allow an authority
+         stream to be run to customize the ACID during the
+         addition.
+
+During ACID addition the following panel will be displayed.  Use
+this panel to fill in the name and department of the ACID to be
+created. If a member exists in the defaults dataset of the same
+name as the department specified it will be used as a command
+stream. If another command stream is required it must be
+specified in the command stream line.
+
+---------------- TESTID ADD INFO PANEL   ------------------------
+
+OPTION ===>
+Name   ===> George                       Dept ===> THEDEPT
+
+Specify a command stream from the defaults dataset ===> Stream1
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+Enter END ,  X  or  PF 3  to return to main menu
+
+
+Upon hitting Enter the defaults dataset is searched for a member
+matching the stream specified and a command stream is created for
+the ID, as shown below:
+
+---------------- TESTID ADD INFO PANEL   ------------------------
+ CHANGE DEFAULT COMMAND STREAM IF NEEDED AND HIT ENTER.
+OPTION ===>
+Name   ===> george                 Dept ===> g1dept
+
+Specify a command stream from the defaults dataset ===> stream1
+===> NAME('george')  DEPT(G1DEPT) TYPE(USER) PROF(MVSTECH)
+===> TSS PER( TESTID ) DSN(TSS.JOBCLASS.Y) ACCESS(ALL)
+===> TSS PER( TESTID ) TSOACCT(98000)
+===> TSS PER( TESTID ) TSOPROC(STEPLIB)
+===> TSS PER( TESTID ) TSOPROC(SPFLOGON)
+===> TSS add( TESTID ) home('/u/users/testid')
+===> TSS add( TESTID ) group(mvsgrp)
+===> TSS add( TESTID ) uid(0)
+===>
+===>
+===>
+===>
+===>
+===>
+===>
+Enter END ,  X  or  PF 3  to return to main menu
+
+In online mode hitting Enter at this point causes the ID to be
+created. In batch mode it updates the DS5 JCL stream with the
+above command stream.
+
+Defaults Member for Command Stream
+
+The defaults member ( stream1 ) that was used to create this
+command stream looks like this:
+
+DEPT(G1DEPT) TYPE(USER) PROF(MVSTECH)
+TSS PER( $$ ) DSN(TSS.JOBCLASS.Y) ACCESS(ALL)
+TSS PER( $$ ) TSOACCT(98000)
+TSS PER( $$ ) TSOPROC(STEPLIB)
+TSS PER( $$ ) TSOPROC(SPFLOGON)
+TSS add( $$ ) home('/u/users/$$')
+TSS add( $$ ) group(mvsgrp)
+TSS add( $$ ) uid(0)
+
+The $$ values above get substituted with the ACID at creation time.
+
+Authorities: Option 4
+
+The authority menu has sub options for the most frequently given
+resource authorities, TSO authorities, datasets and DASD volumes.
+It also has the options:
+
+Authorize:  This command inserts the ACID specified into the
+authority stream of the defaults dataset member specified, and
+executes the stream. This function exactly emulates the process
+that is done at ACID addition time except this function ignores
+line one of the authority stream which is used only for ACID
+creation.
+
+Makeauth: This command creates an authority stream using an ACID
+as a model for the stream.
+
+Giveuid: This command determines the highest current UID and
+gives the ACID the next UID. This function requires TSS modify
+authority.
+
+Backup: Option 5
+
+The backup menu has the following options:
+
+Backup: This command takes a text backup of the ACID specified to
+your backup PDS. The member name will be the ACID name
+
+Getbackup: This command retrieves a previously stored backup form
+the backup PDS and copies it to work dataset #1.
+
+
+Conversion: Option 6
+
+Fullcon - This function creates a batch JCL stream that would, if
+submitted, recreate the ACID specified field. The stream is
+created in work dataset #2.
+
+Note: This output job must be manually submitted it is not
+subject to the panel "SUB" command. It is assumed that the
+administrator will change the stream. This command will also
+accept the parameter "BYPASS" in the ACID field, in which case it
+will convert the output in the dataset pointed to by variable DS1
+(which should be a list of one or many TOP SECRET IDs) to a
+command stream to duplicate those IDs. This command DOES support
+multiple IDs!
+
+Note: Passwords included in the output stream during a  "BYPASS"
+are converted, even though passwords are NOT converted during
+default convert processing.  To include passwords in the output
+stream a LISTO or CMDO command would normally be used.
+
+Pconvert - This command function exactly the same as the convert
+command except it does not produce the TSS commands to recreate
+the ACID in the resulting JCL.
+
+Rescon - This command produces a JCL stream that would recreate
+authorities for a resource system wide.
+
+Prevoke - This command creates a stream to revoke an ACIDs
+authorities.
+
+Resrevoke - This command creates a stream that will remove all
+references to the resource rule specified database wide.
+
+
+ Deletion: Option 7
+
+Delete - This command takes a backup (exactly like the BACKUP
+         command) of the specified ACID and then deletes it.
+
+Fastdel - This command takes no ACID backup prior to deletion.
+
+Utility DSN: Option 8
+
+This menu offers options to browse or edit any of the currently
+allocated work datasets.
+
+E1 - E5 - These commands edit datasets one through five
+          respectively.
+
+B1 - B5 - These commands browse datasets one through five
+          respectively.
+
+
+
+Profiles: Option 9
+
+Repprof - This command generates a JCL stream that will replace a
+          profile system wide.
+
+Insert  - This changes the profile list of an ACID by adding or
+          removing one or many (5 maximum) profiles from the ID.
+          Prior to issuing this command the proper location for
+          the profile must be determined.
+
+Modify  - This command displays a panel to facilitate updating a
+          profile in a full screen mode. This command actually
+          creates a batch job to do the updates, there are no
+          immediate interactive updates performed.
+
+An example of using the modify command is given below.  This
+examples uses three options to specify a delete of facilities VTP
+and NDM, and an addition of an entry using IMSJES2.  Spool
+resource as a model.
+
+---MODE:ONLINE   ----- TD01    SECURITY PANEL -----G114228 --13:25---
+
+Option  ===>
+ACID    ===> MVSTECH
+
+Functions are A(Add) M(Modify) D(Delete) S(show details)
+ Funct  Type           Resource                               Access
+----------------------------------------------------------------------
+        FACILITY       CICSDIV
+        FACILITY       NCCF
+   d    FACILITY       VTP
+   d    FACILITY       NDM
+        FACILITY       OMON
+        FACILITY       TCPIP
+        $$BYPASS       NOVOLCHK,NOLCFCHK
+        ACID           SAVEDOE
+        ACID           TECHUSE
+        ACID           UCC7BAT
+        JESSPOOL       IMSJES2.                               ALL
+        JESJOBS        CANCEL.                                ALL
+
+After hitting Enter the following window will appear in response
+to the add request:
+
+Type     ==> JESSPOOL
+Access   ==> ALL
+Resource ==> IMSJES2.
+Library  ==>
+Facility ==>                Until   ==>
+Action   ==>
+
+
+PF 1=STATUS      2=SPLIT       3=END         4=RETURN
+PF 5=RFIND       6=RCHANGE     7=PREVM       8=NEXTM
+
+Updating the entry will finish the add process.
+
+---MODE:ONLINE   ----- IMS TD01    SECURITY PANEL --- G114228 --13:25---
+
+Type     ==> JESSPOOL
+Access   ==> ALL
+Resource ==> IMSJES2.my.Addition
+Library  ==>
+Facility ==>                Until   ==>
+Action   ==>
+
+
+PF 1=STATUS      2=SPLIT ne    3=END         4=RETURN
+PF 5=RFIND       6=RCHANGE     7=PREVM       8=NEXTM
+
+The original panel is redisplayed with the POTENTIAL changes.
+
+---MODE:ONLINE   ----- IMS TD01    SECURITY PANEL -- G114228 ----13:36
+
+Option  ===>
+ACID    ===> MVSTECH
+
+  Functions are A(Add) M(Modify) D(Delete) S(show details)
+ Funct  Type      Resource                                     Access
+---------------------------------------------------------------------
+        FACILITY  CICSDIV
+        FACILITY  NCCF
+        *DELETE   VTP
+        *DELETE   NDM
+        FACILITY  OMON
+        FACILITY  TCPIP
+        $$BYPASS  NOVOLCHK,NOLCFCHK
+        ACID      SAVEDOE
+        ACID      TECHUSE
+        ACID      UCC7BAT
+        *NEWRULE  IMSJES2.MY.ADDITION                            ALL
+        JESSPOOL  IMSJES2.                                       ALL
+
+
+Hitting PF3 returns you to the main panel with the updates
+pending in DS3.
+
+Reviewing the output with an E3 command shows the following:
+
+
+EDIT       TECH.YOURID.C3                            Columns 00001 00072
+Command ===>                                         Scroll ===> CSR
+000017 //SYSEXEC  DD DSN=SYS3.OS390.REXX,DISP=SHR
+000018 //SYSUADS  DD DSN=SYS1.UADS,DISP=SHR
+000019 //ISPPROF  DD DSN=TECH.SCA.BATCH.ISPPROF,DISP=SHR
+000020 //ISPPLIB  DD DSN=SYS1.OS390.PANEL,DISP=SHR
+000021 //ISPMLIB  DD DSN=SYS1.OS390.MESSAGE,DISP=SHR
+000022 //ISPSLIB  DD DSN=SYS1.OS390.SKEL,DISP=SHR
+000023 //ISPTLIB  DD DSN=SYS1.OS390.TABLE,DISP=SHR
+000024 //SYSTSPRT DD SYSOUT=*
+000025 //SYSTSIN  DD DATA,DLM=@@
+000026 TSS REM(MVSTECH) FACILITY(VTP)
+000027 TSS REM(MVSTECH) FACILITY(NDM)
+000028 TSS PER(MVSTECH) JESSPOOL(IMSJES2.MY.ADDITION) +
+000029   ACCESS(ALL)
+****** ******************** Bottom of Data *********************
+
+At this point you can submit this JCL or change it in any way you
+see fit.
+
+
+
+Commands: Option 10
+
+Groupcmd - This command generates a command stream that will
+issue the same command for each ACID attached to a department,
+division or profile ACID.  The substitution string must include
+the string ' $$ ' which will be replaced by each ACID to be
+targeted by the command.
+
+Cmdout - This option issues a command and routes the ouput to
+work dataset #1.
+
+Cmdscreen - This option issues a command and routes the output to
+a temporary screen dataset.
+
+Internal Options: Option 11
+
+Batch - This command changes the processing mode to batch. In
+batch mode all commands that are issued that would cause changes
+to the TOP SECRET security file are deferred, and their
+equivalent is written to a batch jobstream. This jobstream is
+contained in the DSN pointed to by the DS5 variable. Note that
+this jobstream can be submitted sight unseen with the SUB command
+from the panel, or you may end batch mode with the ONLINE command
+and edit the JCL with the E5 command. Note that exiting and
+re-entering batch mode erases the output from your previous batch
+mode!
+
+Online - This command changes the processing mode to online. This
+command is used after entering batch mode (see the BATCH
+command).  The JCL stream that was created in batch in DS5 is
+closed and can be edited and manually submitted if needed.  Note
+that this JCL stream can be submitted sight unseen with the SUB
+command when in batch mode. Note that exiting and then
+re-entering batch mode erases the output from your previous batch
+mode!
+
+Reinit - This command reloads all defined variables, overlaying
+all session customization. It resets the current mode to online,
+and reloads the screen and command tables.
+
+Sub - This command changes the processing mode to online, and
+submits the JCL that has been constructed as part of batch mode..
+This command is only valid in batch mode.
+
+Writedebug - This dumps the debug log to work dataset #3 and
+opens a browse session for that dataset.  This command would
+normally be used by technical support to help gain information
+regarding a problem.  This command is non-disruptive as far as
+panel system functionality, but be aware this command will
+overwrite the contents of DS3.
+
+Commandload - This command reloads the command definition from
+the file specified. Be aware this may drastically change how the
+system functions without changing the appearance of the screen.
+This command is normally used to test a command definition prior
+to utilizing it system wide. This command is only in effect for
+the duration of the current session, and can be undone with
+another COMMANDLOAD, a REINIT command or exiting and restarting
+the system.
+
+
+STC Interface: Option 13
+
+This screen lists options to modify the running started task and
+trap the output for your review.
+
+
+
+This panel issues TSS modify commands and traps the output if any.
+
+
+
+
+Chapter  2
+
+SPI Expert Mode Commands
+
+Expert mode command introduction
+
+Expert Command introduction
+
+The SPI system in expert mode has a different look and feel than
+the basic mode. When most commands are selected they are
+immediately invoked, no pop up menu will appear. This results in
+commands being dispatched quickly, which allows many commands to
+be issued without waiting for the popup menu to input additional
+data.
+
+The drawback of expert mode is that since the panel interface
+does not change, the user must know what data is required for
+each function with a minimal amount of instruction.
+
+Most commands have two ways of being invoked, an expert display
+mode version and a basic display mode version.  The differences
+being the intervening pop up menus. All basic mode commands will
+function in expert mode and vice versa. And a user may switch
+between expert and basic as he/she sees fit.
+
+Expert mode fully takes advantage of the CORECMD and CORESCR
+members of parmlib to allow customization by the installation.
+See the customization guide for details on how this can be done.
+
+Expert Command delivered commands
+
+As mentioned above most basic mode commands have an expert mode
+alias by which they can also be invoked. Here is the list of
+delivered expert mode commands and their basic mode aliases.
+
+Expert  Mode command          Basic mode command
+
+Auth                          Authorize
+Back                          Backup
+Cmds                          Cmdscreen
+Cmdo                          Cmdout
+Co                            Fullcon
+Conp                          Pconvert
+Conrrem                       Resrevoke
+Conr                          Rescon
+Conrevoke                     Prevoke
+Dsnall                        Dsall
+Dsnread                       Dsread
+Dsnrevoke                     Dsrevoke
+Dsnupdate                     Dsupdate
+Dsnwrite                      Dsnwrite
+Del                           Delete
+Gcmd                          Groupcmd
+Getback                       Getbackup
+In                            Insert
+Lo                            Listo
+Ls                            Lists
+L                             List
+Repp                          Repprof
+
+
+
+
+
+The Basics of the Expert Panel
+
+The expert mode panel looks like this:
+
+---MODE:ONLINE - ---- xxxx    SECURITY PANEL -- YOURID ---12:55-----
+
+OPTION  ===>
+ACID    ===> WELCOME
+DATA    ===>
+DATA2   ===>
+
+Function            Command (Option)    Parms (ACID, DATA, DATA2)
+
+Add ACID              Add               ID to be created
+Backup                Backup            ACID to be backed up to DSN
+Browse Util DSN       B1 B2 B3 B4 B5    NONE
+Cmdout screen/dataset Cmdo/Cmds         The Command to be issued to TSO
+Convert a resource    Convertresource   Rtype, Rname (audit/remove)
+Convert an ACID       Convertacid       ACID to be converted or BYPASS
+Debug log, creating   Writedebug        None
+Delete ID             Delete            ACID to be deleted
+Edit   Util DSN       E1 E2 E3 E4 E5    None
+Get backup member     Getbackup         The member name to retrieve
+Group command         Groupc            Group, The command to issue
+Insert a profile      Insert            ID, profile , position ( days)
+List ID               L/LO/LS           ID, data to be listed
+
+
+
+
+Expert Panel Description
+
+Line 1      Displays the current mode (batch or online), the
+            SYSID of the current system, the current TSO ID and
+            the time.
+
+Line 2      A message area for normal importance messages.
+
+Lines 3 to 6   Data input areas for commands.
+
+Line 7      A message area for important messages.
+
+Line 8      A static line that contains the column headers for
+            the scrollable command area.
+
+Lines below 8  A scrollable command area.  Each line below the
+            column headers represent one function that can be
+            invoked from the panel.  The three columns of the
+            command area are used as follows:
+
+* Column 1 includes the function label, which is a short text
+           field describing the command or function to be invoked.
+
+* Column 2 gives the exact command that must be entered on the
+           OPTION field in line three to invoke the command.
+
+* Column 3 is a comma-delimited description of the parameters
+           that the command accepts.
+
+The entire lower area is scrollable; simply use PF7 to scroll up
+and PF8 to scroll down as you would in a browse session.
+
+The scrollable command area gives you immediate access to the
+required parameters for any command.  For example, if you wanted
+to use the IN ( Insert) command, you would review the parameter
+column entry.  It shows the following:
+
+ID, profile , position ( days )
+|        |               |
+|        |                DATA2 field
+|        |
+|      DATA field
+|
+ACID field
+
+This following example indicates that the if you wanted to insert
+profile MYPROF into ACID MYID at position 3 for 30 days the panel
+should be filled out as follows:
+
+OPTION  ===> Insert
+ACID    ===> MYID
+DATA    ===> MYPROF
+DATA2   ===> 3      30
+
+Note there is no comma between the position parameter and the
+days parameter so they both are input on the DATA2 line.  The
+parenthesis around the days parameter indicates it is optional.
+
+
+
+
+
+
+A
+ACID
+        Adding                          17
+        Affecting many
+           with a single command        27
+        Backing up                      20
+        Conversion                      21
+        Deleting                        22
+        Granting standard authorities   19
+        Listing 16
+        Profile functions               24
+ACID
+        how to backup                    9
+        how to move groups              10
+        how to retrieve a backup         9
+
+B
+BACKUP
+        example                          9
+
+C
+CMDOUT
+        example                         10
+Command parameters
+        displayed on expert  panel      36
+Command stream
+        defaults member                 18
+        Command table reload            28
+Commands
+        Summary 12
+
+E
+Expert Introduction                     34
+Expert panel description                35
+
+F
+Facility entry
+        modifying                       24
+        Features                         4
+
+G
+GETBACKUP
+        example                          9
+
+I
+Ids
+        ADDing                          17
+        Introduction                     6
+
+L
+Log
+        writing the debug log           28
+
+M
+Menus
+        Addition menu                   17
+        Authority menu                  19
+        Backup menu                     20
+        Basic functions                 15
+        Command menu                    27
+        Conversion menu                 21
+        Dataset edit/browse menu        23
+        Deletion menu                   22
+        Internal options menu           28
+        List menu                       16
+        Settings                        14
+        The profile menu                24
+Mode
+        Changing                        28
+        Modify command for facilities   24
+        Move ACID groups, how to        10
+
+P
+Panel system
+        local variables                  8
+Panels, command mode                     7
+Panels, display mode                     7
+Profile
+        modifying in full screen mode   24
+
+R
+RESCON
+        example                          9
+Resource
+        how to make a copy               9
+
+S
+SPI
+        command summary                 12
+Expert panel descriptions               35
+        introduction                     4
+        modes of operation               7
+        quick reference                  8
+        using the expert panel          34
+        using the panels                 6
+STC
+        Interface options               30
+        STC Addition                    17
+
+U
+Updating
+Password/suspend/ expiration fields     15
+Standard variable settings              14
+
+V
+Variables
+        reloading all                   28
+        resetting one internally        28
+
+W
+Work datasets   8
+
+
+
+
+Introduction
+
+Introduction
+
+1-4    SPI  Command Reference and Usage Guide      
+
+        SPI Basics    0-3
+
+
+
+        SPI Basics    1-1
+
